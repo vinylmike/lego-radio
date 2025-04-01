@@ -1,45 +1,59 @@
 body {
-    background-color: #222;
-    color: #EEE;
-    font-family: 'Orbitron', sans-serif;
-    text-align: center;
-    padding: 2rem;
-  }
-  
-  h1 {
-    font-size: 2.5rem;
-    color: #FFD700;
-    text-shadow: 1px 1px #000;
-  }
-  
-  p {
-    font-size: 1.2rem;
-    margin: 1rem 0;
-  }
-  
-  a {
-    display: inline-block;
-    padding: 1rem 2rem;
-    margin: 1rem;
-    text-decoration: none;
-    font-weight: bold;
-    color: white;
-    background-color: #e3000b; /* LEGO red */
-    border: 4px solid #ffcc00; /* LEGO yellow border */
-    border-radius: 12px;
-    box-shadow: 0 0 10px #000;
-    transition: background-color 0.2s ease;
-  }
-  
-  a:hover {
-    background-color: #ff0000;
-  }
-  
-  .status-on {
-    color: #00ff00;
-  }
-  
-  .status-off {
-    color: #ff4444;
-  }
-  
+  margin: 0;
+  padding: 0;
+  font-family: 'Orbitron', sans-serif;
+  color: #fff;
+  background: url("../assets/control_panel_background.png") no-repeat center center fixed;
+  background-size: cover;
+}
+
+.radio-container {
+  text-align: center;
+  padding: 2rem;
+  background-color: rgba(0,0,0,0.5);
+  max-width: 800px;
+  margin: auto;
+  border-radius: 20px;
+  box-shadow: 0 0 30px #000;
+}
+
+.header-image {
+  max-width: 300px;
+  margin-bottom: 2rem;
+}
+
+.status-text {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.station-name {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.status-on {
+  color: #00ff00;
+  font-weight: bold;
+}
+
+.status-off {
+  color: #ff4444;
+  font-weight: bold;
+}
+
+.button-row {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.brick-button {
+  width: 100px;
+  height: auto;
+  transition: transform 0.2s ease;
+}
+
+.brick-button:hover {
+  transform: scale(1.1);
+}
