@@ -1,31 +1,55 @@
-from flask import Flask, render_template, redirect
-import sys
+from flask import Flask, render_template, request, jsonify
+import requests
+import json
 import os
-from pathlib import Path
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from radio_controller import RadioController
-
-radio = RadioController()
 app = Flask(__name__)
 
-@app.route("/")
-def index():
-    return render_template("index.html", station=radio.get_station_name(), status=radio.radio_on)
+PRESETS_FILE = os.path.join(os.path.dirname(__file__), '..', 'presets.json')
+RADIO_BROWSER_API = "https://de1.api.radio-browser.info/json"
 
-@app.route("/power")
-def toggle_power():
-    if radio.radio_on:
-        radio.power_off()
-    else:
-        radio.power_on()
-    return redirect("/")
+# Load current presets (UUIDs)
+def load_presets():
+    if not os.path.exists(PRESETS_FILE):
+        return []
+    with open(PRESETS_FILE, 'r') as f:
+        return json.load(f)
 
-@app.route("/next")
-def next_station():
-    if radio.radio_on:
-        radio.next_station()
-    return redirect("/")
+# Save updated presets (UUIDs)
+def save_presets(presets):
+    with open(PRESETS_FILE, 'w') as f:
+        json.dump(presets, f, indent=2)
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080)
+@app.route("/stations")
+def station_manager():
+    return render_template("stations.html")
+
+@app.route("/api/search")
+def search_stations():
+    term = request.args.get("q", "")
+    r = requests.get(f"{RADIO_BROWSER_API}/stations/search", params={"name": term})
+    return jsonify(r.json())
+
+@app.route("/api/presets")
+def get_presets():
+    return jsonify(load_presets())
+
+@app.route("/api/presets/add", methods=["POST"])
+def add_preset():
+    data = request.get_json()
+    uuid = data.get("stationuuid")
+    presets = load_presets()
+    if uuid and len(presets) < 10 and uuid not in [p['stationuuid'] for p in presets]:
+        presets.append({"stationuuid": uuid})
+        save_presets(presets)
+        return jsonify({"status": "added"})
+    return jsonify({"status": "error"})
+
+@app.route("/api/presets/remove", methods=["POST"])
+def remove_preset():
+    data = request.get_json()
+    uuid = data.get("stationuuid")
+    presets = load_presets()
+    updated = [p for p in presets if p["stationuuid"] != uuid]
+    save_presets(updated)
+    return jsonify({"status": "removed"})
