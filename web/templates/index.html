@@ -2,12 +2,18 @@
 <html>
 <head>
     <title>LEGO Radio</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
 </head>
 <body>
     <h1>LEGO Internet Radio</h1>
-    <p>Status: {{ 'ON' if status else 'OFF' }}</p>
+    <p>Status: 
+        <span class="{{ 'status-on' if status else 'status-off' }}">
+            {{ 'ON' if status else 'OFF' }}
+        </span>
+    </p>
     <p>Current Station: {{ station }}</p>
-    <a href="/power">Toggle Power</a> |
+    <a href="/power">Toggle Power</a>
     <a href="/next">Next Station</a>
 </body>
 </html>

@@ -1,43 +1,58 @@
-import subprocess, os
-
-stations = [
-    ("BBC Radio 1", "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_one"),
-    ("NightRide LoFi", "https://stream.nightride.fm/lofi_ogg"),
-    ("Jazz", "http://us4.internet-radio.com:8266/stream"),
-    ("FIP France", "https://icecast.radiofrance.fr/fip-midfi.mp3"),
-]
+import os
+import random
+import subprocess
+from pathlib import Path
 
 class RadioController:
     def __init__(self):
-        self.radio_on = False
+        self.stations = [
+            ("BBC Radio 1", "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_one"),
+            ("NPR News", "https://npr-ice.streamguys1.com/live.mp3"),
+            ("KEXP", "http://live-mp3-128.kexp.org:8000"),
+            ("Jazz24", "https://live.wostreaming.net/direct/ppm-jazz24mp3-ibc1"),
+            ("80s Radio", "http://uk4.internet-radio.com:8276/"),
+        ]
         self.current_index = 0
-        self.going_forward = True
-        self.player = None
-        self.station_file = "/home/vinylmike/lego_radio/last_station.txt"
-        self.load_station_index()
+        self.station_file = str(Path.home() / "lego_radio" / "last_station.txt")
+        self.radio_on = False
+        self.process = None
+        self.load_last_station()
 
-    def load_station_index(self):
-        try:
+    def load_last_station(self):
+        if os.path.exists(self.station_file):
             with open(self.station_file, "r") as f:
-                self.current_index = int(f.read().strip())
-        except:
-            self.current_index = 0
+                try:
+                    self.current_index = int(f.read().strip())
+                except:
+                    self.current_index = 0
 
-    def save_station_index(self):
+    def save_last_station(self):
         with open(self.station_file, "w") as f:
             f.write(str(self.current_index))
 
-    def play_station(self):
-        name, url = stations[self.current_index]
-        self.stop()
-        self.player = subprocess.Popen(["mpv", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print(f"Playing: {name}")
+    def get_station_name(self):
+        return self.stations[self.current_index][0]
 
-    def stop(self):
-        if self.player:
-            self.player.terminate()
-            self.player.wait()
-            self.player = None
+    def play_station(self):
+        if self.process:
+            self.process.terminate()
+        name, url = self.stations[self.current_index]
+        print(f"Playing: {name}")
+        self.process = subprocess.Popen(["mpv", "--no-video", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def stop_station(self):
+        if self.process:
+            self.process.terminate()
+            self.process = None
+
+    def next_station(self):
+        if len(self.stations) > 1:
+            self.current_index += 1
+            if self.current_index >= len(self.stations):
+                self.stations.reverse()
+                self.current_index = 1
+        self.save_last_station()
+        self.play_station()
 
     def power_on(self):
         if not self.radio_on:
@@ -47,26 +62,4 @@ class RadioController:
     def power_off(self):
         if self.radio_on:
             self.radio_on = False
-            self.save_station_index()
-            self.stop()
-            os.system("sudo shutdown now")
-
-    def next_station(self):
-        if self.going_forward:
-            if self.current_index < len(stations) - 1:
-                self.current_index += 1
-            else:
-                self.going_forward = False
-                self.current_index -= 1
-        else:
-            if self.current_index > 0:
-                self.current_index -= 1
-            else:
-                self.going_forward = True
-                self.current_index += 1
-
-        self.play_station()
-        self.save_station_index()
-
-    def get_station_name(self):
-        return stations[self.current_index][0]
+            self.stop_station()
