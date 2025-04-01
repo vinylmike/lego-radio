@@ -1,0 +1,15 @@
+[Unit]
+Description=LEGO Radio Web Interface
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/pi/lego_radio/web/app.py
+WorkingDirectory=/home/pi/lego_radio/web
+Restart=always
+User=pi
+Environment=FLASK_APP=app.py
+Environment=FLASK_ENV=production
+
+[Install]
+WantedBy=multi-user.target

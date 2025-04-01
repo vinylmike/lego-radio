@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LEGO Radio</title>
+</head>
+<body>
+    <h1>LEGO Internet Radio</h1>
+    <p>Status: {{ 'ON' if status else 'OFF' }}</p>
+    <p>Current Station: {{ station }}</p>
+    <a href="/power">Toggle Power</a> |
+    <a href="/next">Next Station</a>
+</body>
+</html>

@@ -1,0 +1,13 @@
+[Unit]
+Description=LEGO Radio GPIO Button Controller
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/pi/lego_radio/gpio_radio.py
+Restart=on-failure
+User=pi
+WorkingDirectory=/home/pi/lego_radio
+
+[Install]
+WantedBy=multi-user.target
