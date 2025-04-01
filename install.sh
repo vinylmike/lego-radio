@@ -13,7 +13,7 @@ sudo apt install -y mpv python3-pip
 
 # Install Python dependencies
 echo "📦 Installing Python packages..."
-pip3 install -r "$REPO_DIR/requirements.txt"
+pip3 install --break-system-packages -r "$REPO_DIR/requirements.txt"
 
 # Copy systemd service files
 echo "⚙️ Installing systemd services..."
