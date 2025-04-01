@@ -3,7 +3,9 @@ body {
   padding: 0;
   font-family: 'Orbitron', sans-serif;
   color: #fff;
-  background: url("../assets/control_panel_background.png") no-repeat center center fixed;
+  background: url("/static/assets/control_panel_background.png") no-repeat center center fixed;
+
+  
   background-size: cover;
 }
 
