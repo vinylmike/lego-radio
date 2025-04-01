@@ -11,7 +11,7 @@ last_power_press = 0
 last_tune_press = 0
 cool_off_seconds = 1.0
 
-print("📻 GPIO Radio Controller Ready")
+print("GPIO Radio Controller Ready")
 
 while True:
     if power_button.is_pressed:

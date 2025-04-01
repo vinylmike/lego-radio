@@ -1,4 +1,9 @@
 from flask import Flask, render_template, redirect
+import sys
+import os
+
+# Add the parent directory to sys.path so we can import radio_controller
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from radio_controller import RadioController
 
 radio = RadioController()
@@ -21,3 +26,6 @@ def next_station():
     if radio.radio_on:
         radio.next_station()
     return redirect("/")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)

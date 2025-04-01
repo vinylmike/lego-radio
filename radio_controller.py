@@ -31,7 +31,7 @@ class RadioController:
         name, url = stations[self.current_index]
         self.stop()
         self.player = subprocess.Popen(["mpv", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print(f"🎶 Playing: {name}")
+        print(f"Playing: {name}")
 
     def stop(self):
         if self.player:
