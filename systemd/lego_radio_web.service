@@ -4,10 +4,10 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /home/pi/lego_radio/web/app.py
-WorkingDirectory=/home/pi/lego_radio/web
+ExecStart=/usr/bin/python3 /home/vinylmike/lego_radio/web/app.py
+WorkingDirectory=/home/vinylmike/lego_radio/web
 Restart=always
-User=pi
+User=vinylmike
 Environment=FLASK_APP=app.py
 Environment=FLASK_ENV=production
 

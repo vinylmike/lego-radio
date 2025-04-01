@@ -2,7 +2,7 @@
 
 echo "🧱 LEGO Radio Installer"
 
-REPO_DIR="/home/pi/lego_radio"
+REPO_DIR="/home/vinylmike/lego_radio"
 SYSTEMD_DIR="/etc/systemd/system"
 PYTHON_PATH="/usr/bin/python3"
 

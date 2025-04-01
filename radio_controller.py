@@ -13,7 +13,7 @@ class RadioController:
         self.current_index = 0
         self.going_forward = True
         self.player = None
-        self.station_file = "/home/pi/lego_radio/last_station.txt"
+        self.station_file = "/home/vinylmike/lego_radio/last_station.txt"
         self.load_station_index()
 
     def load_station_index(self):
