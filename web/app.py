@@ -1,55 +1,42 @@
-from flask import Flask, render_template, request, jsonify
-import requests
-import json
-import os
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Brick Internet Radio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="tuner-body">
+    <nav class="top-nav">
+        <a href="/">🎵 Player</a>
+    </nav>
 
-app = Flask(__name__)
+    <div class="tuner-container">
+        <div class="tuner-dial">
+            <span class="freq">89.9 MHz</span>
+            <span class="freq active">91.1 MHz</span>
+            <span class="freq">94.1 MHz</span>
+        </div>
 
-PRESETS_FILE = os.path.join(os.path.dirname(__file__), '..', 'presets.json')
-RADIO_BROWSER_API = "https://de1.api.radio-browser.info/json"
+        <div class="station-display">
+            <div class="album-art">
+                <img src="{{ station.favicon or url_for('static', filename='assets/fallback_logo.png') }}"
+                     alt="Station Art"
+                     onerror="this.onerror=null;this.src='{{ url_for('static', filename='assets/fallback_logo.png') }}';">
+            </div>
+            <div class="station-info">
+                <h2 class="station-name">{{ station.name }}</h2>
+                <p>Status:
+                    <span class="{{ 'status-on' if status else 'status-off' }}">
+                        {{ 'ON' if status else 'OFF' }}
+                    </span>
+                </p>
+            </div>
+        </div>
 
-# Load current presets (UUIDs)
-def load_presets():
-    if not os.path.exists(PRESETS_FILE):
-        return []
-    with open(PRESETS_FILE, 'r') as f:
-        return json.load(f)
-
-# Save updated presets (UUIDs)
-def save_presets(presets):
-    with open(PRESETS_FILE, 'w') as f:
-        json.dump(presets, f, indent=2)
-
-@app.route("/stations")
-def station_manager():
-    return render_template("stations.html")
-
-@app.route("/api/search")
-def search_stations():
-    term = request.args.get("q", "")
-    r = requests.get(f"{RADIO_BROWSER_API}/stations/search", params={"name": term})
-    return jsonify(r.json())
-
-@app.route("/api/presets")
-def get_presets():
-    return jsonify(load_presets())
-
-@app.route("/api/presets/add", methods=["POST"])
-def add_preset():
-    data = request.get_json()
-    uuid = data.get("stationuuid")
-    presets = load_presets()
-    if uuid and len(presets) < 10 and uuid not in [p['stationuuid'] for p in presets]:
-        presets.append({"stationuuid": uuid})
-        save_presets(presets)
-        return jsonify({"status": "added"})
-    return jsonify({"status": "error"})
-
-@app.route("/api/presets/remove", methods=["POST"])
-def remove_preset():
-    data = request.get_json()
-    uuid = data.get("stationuuid")
-    presets = load_presets()
-    updated = [p for p in presets if p["stationuuid"] != uuid]
-    save_presets(updated)
-    return jsonify({"status": "removed"})
+        <div class="tuner-controls">
+            <a href="/power" class="control-button">🔴</a>
+            <a href="/next" class="control-button">⏭️</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -3,113 +3,137 @@
 <head>
     <title>Manage Stations</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        body { background: #1a1a1a; color: #fff; font-family: Orbitron, sans-serif; padding: 2rem; }
-        h1 { text-align: center; margin-bottom: 2rem; }
-        .search-bar { text-align: center; margin-bottom: 2rem; }
-        input[type="text"] {
-            font-size: 1.2rem; padding: 0.5rem 1rem; width: 60%;
-            border-radius: 12px; border: none;
-        }
-        .results, .presets {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            max-width: 800px;
-            margin: auto;
-        }
-        .station {
-            display: flex; justify-content: space-between;
-            align-items: center; background: #333; padding: 1rem;
-            border-radius: 10px;
-        }
-        .station-info { flex: 1; }
-        .station img { height: 32px; width: 32px; margin-right: 10px; }
-        button { background: none; border: none; font-size: 1.5rem; color: #fff; cursor: pointer; }
-        button:hover { color: #0f0; }
-        .remove:hover { color: #f00; }
-    </style>
 </head>
 <body>
-    <h1>🔧 Manage Your Radio Stations</h1>
-    <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="Search stations..." />
+    <nav class="top-nav">
+        <a href="/">🎵 Player</a>
+        <a href="/stations">🔧 Manage</a>
+    </nav>
+
+    <div class="radio-container">
+        <h2>Manage Your Radio Stations</h2>
+
+        <div class="filters">
+            <input id="searchQuery" type="text" placeholder="Search by name..." />
+            <select id="tagDropdown" onchange="searchByTag()">
+                <option selected>🎼 Genre</option>
+            </select>
+            <select id="countryDropdown" onchange="searchByCountry()">
+                <option selected>🌍 Country</option>
+            </select>
+            <button onclick="searchStations()">🔍 Search</button>
+        </div>
+
+        <table class="station-table" id="results">
+            <thead>
+                <tr>
+                    <th>Logo</th>
+                    <th>Name</th>
+                    <th>Country</th>
+                    <th>Bitrate</th>
+                    <th>Add</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <hr>
+        <h3>📻 Presets</h3>
+        <div id="presets"></div>
     </div>
 
-    <h2 style="text-align:center">🔁 Results</h2>
-    <div class="results" id="searchResults"></div>
-
-    <h2 style="text-align:center">📻 Presets</h2>
-    <div class="presets" id="presetList"></div>
-
     <script>
-        const searchInput = document.getElementById("searchInput");
-        const resultsDiv = document.getElementById("searchResults");
-        const presetList = document.getElementById("presetList");
-
         async function fetchPresets() {
-            const res = await fetch("/api/presets");
-            return await res.json();
-        }
-
-        async function loadPresets() {
-            const presets = await fetchPresets();
-            presetList.innerHTML = "";
-            for (const p of presets) {
-                const stationData = await fetch(`/api/search?q=${p.stationuuid}`).then(r => r.json());
-                if (stationData.length === 0) continue;
-                const s = stationData[0];
-                const div = document.createElement("div");
-                div.className = "station";
-                div.innerHTML = `
-                    <div class="station-info">
-                        <img src="${s.favicon || ''}" onerror="this.src='https://radio-browser.info/assets/images/placeholder-station.png'">
-                        ${s.name} — ${s.country}
-                    </div>
-                    <button class="remove" onclick="removePreset('${s.stationuuid}')">🗑️</button>
-                `;
-                presetList.appendChild(div);
-            }
+            const res = await fetch('/api/presets');
+            const presets = await res.json();
+            const el = document.getElementById('presets');
+            el.innerHTML = presets.map(p => `
+                <div class="preset">
+                    <strong>${p.name}</strong>
+                    <span>(${p.country}, ${p.bitrate}kbps)</span>
+                    <button onclick="removePreset('${p.stationuuid}')">🗑️</button>
+                </div>
+            `).join('');
         }
 
         async function removePreset(uuid) {
-            await fetch("/api/presets/remove", {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stationuuid: uuid })
+            await fetch('/api/presets/remove', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({stationuuid: uuid})
             });
-            loadPresets();
+            fetchPresets();
         }
 
-        async function addPreset(uuid) {
-            await fetch("/api/presets/add", {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stationuuid: uuid })
+        async function addPreset(station) {
+            await fetch('/api/presets/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(station)
             });
-            loadPresets();
+            fetchPresets();
         }
 
-        searchInput.addEventListener("input", async () => {
-            const q = searchInput.value;
-            const res = await fetch(`/api/search?q=${q}`);
+        async function populateDropdowns() {
+            const tagRes = await fetch('/api/tags');
+            const tags = await tagRes.json();
+            const tagDropdown = document.getElementById('tagDropdown');
+            tags.slice(0, 40).forEach(t => {
+                const opt = document.createElement("option");
+                opt.value = opt.text = t.name;
+                tagDropdown.add(opt);
+            });
+
+            const countryRes = await fetch('/api/countries');
+            const countries = await countryRes.json();
+            const countryDropdown = document.getElementById('countryDropdown');
+            countries.forEach(c => {
+                const opt = document.createElement("option");
+                opt.value = opt.text = c.name;
+                countryDropdown.add(opt);
+            });
+        }
+
+        async function searchStations() {
+            const query = document.getElementById('searchQuery').value;
+            const res = await fetch(`/api/search?q=${query}`);
             const stations = await res.json();
-            resultsDiv.innerHTML = "";
-            for (const s of stations.slice(0, 10)) {
-                const div = document.createElement("div");
-                div.className = "station";
-                div.innerHTML = `
-                    <div class="station-info">
-                        <img src="${s.favicon || ''}" onerror="this.src='https://radio-browser.info/assets/images/placeholder-station.png'">
-                        ${s.name} — ${s.country} (${s.bitrate}kbps)
-                    </div>
-                    <button onclick="addPreset('${s.stationuuid}')">➕</button>
-                `;
-                resultsDiv.appendChild(div);
-            }
-        });
+            renderResults(stations);
+        }
 
-        loadPresets();
+        async function searchByTag() {
+            const tag = document.getElementById("tagDropdown").value;
+            if (tag === "🎼 Genre") return;
+            const res = await fetch(`/api/stations/bytag/${encodeURIComponent(tag)}`);
+            const stations = await res.json();
+            renderResults(stations);
+        }
+
+        async function searchByCountry() {
+            const country = document.getElementById("countryDropdown").value;
+            if (country === "🌍 Country") return;
+            const res = await fetch(`/api/stations/bycountry/${encodeURIComponent(country)}`);
+            const stations = await res.json();
+            renderResults(stations);
+        }
+
+        function renderResults(stations) {
+            const tbody = document.querySelector("#results tbody");
+            tbody.innerHTML = stations.slice(0, 50).map(s => {
+                const icon = s.favicon || "/static/assets/fallback_logo.png";
+                return `
+                <tr>
+                    <td><img src="${icon}" alt="logo" class="station-icon"></td>
+                    <td>${s.name}</td>
+                    <td>${s.country}</td>
+                    <td>${s.bitrate || 0} kbps</td>
+                    <td><button onclick='addPreset(${JSON.stringify(s)})'>➕</button></td>
+                </tr>`;
+            }).join('');
+        }
+
+        populateDropdowns();
+        fetchPresets();
     </script>
 </body>
 </html>
